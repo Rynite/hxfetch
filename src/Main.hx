@@ -1,10 +1,10 @@
 package;
 
-import sys.io.Process;
-import DFParser.DfParser;
+import HxFetch.Drive;
 
 class Main {
 	static function main() {
-		trace(DfParser.parse(new Process("df", ["-h"]).stdout.readAll().toString()));
+		var drive:Drive = HxFetch.get_main_drive();
+		trace(drive);
 	}
 }
