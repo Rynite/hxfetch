@@ -4,7 +4,7 @@ import sys.io.Process;
 
 using StringTools;
 
-// This class won't be neofetch dependent, it'll essentially use coreutils
+// This class won't be neofetch dependent, it'll essentially use coreutilss
 class HxFetch {
 
     public static var possible_drives:Array<String> = ["/dev/sda1", "/dev/sda2", "/dev/sda3"];
