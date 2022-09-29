@@ -64,9 +64,9 @@ class HxFetch {
 
     // print the ascii
     public static function print_ascii(distro:String) {
-        for (i in FileSystem.readDirectory("src/ascii")) {
+        for (i in FileSystem.readDirectory("ascii")) {
             if (i  == distro + ".txt") {
-                trace(File.getContent('src/$distro.txt'));
+                trace(File.getContent('$distro.txt'));
             }
         }
     }
