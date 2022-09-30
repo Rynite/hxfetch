@@ -3,4 +3,4 @@
 -lib console.hx
 -lib hxargs
 -main Main
---interp
+--run Main

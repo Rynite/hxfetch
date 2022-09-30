@@ -103,7 +103,6 @@ class HxFetch {
         for (t in terms) {
             var r:EReg = new EReg('$t', "i");
             if (r.match(te)) {
-                trace("yoo");
                 terminal = t;
             }
         }
@@ -112,7 +111,6 @@ class HxFetch {
         if (terminal == "rxvt") {
             terminal = "urxvt";
         }
-        
 
         return "terminal: " + terminal;
     }
