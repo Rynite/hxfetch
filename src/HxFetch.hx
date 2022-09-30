@@ -4,7 +4,7 @@ import sys.FileSystem;
 import sys.io.Process;
 import Sys.print;
 import Console;
-import hxargs.Args;
+
 
 using StringTools;
 
@@ -21,7 +21,8 @@ class HxFetch {
 
     public static var terms:Array<String> = [
         "kitty",
-        "rxvt"
+        "rxvt",
+        "xterm-256color"
     ];
 
 
@@ -110,6 +111,8 @@ class HxFetch {
         // just some special cases
         if (terminal == "rxvt") {
             terminal = "urxvt";
+        } else if (terminal == "xterm-256color") {
+            terminal = "vscode";
         }
 
         return "terminal: " + terminal;
@@ -217,13 +220,20 @@ class HxFetch {
 
         // align them
         for (line in ascii_lines) {
-            print(line);
+            if (ArgumentParser.color1 == "") {
+                ArgumentParser.color1 = "white";
+            } else if (ArgumentParser.color2 == "") {
+                ArgumentParser.color2 = "white";
+            }
+
+            Console.log('<' + ArgumentParser.color1 + '>' + line + '</>');
+            
             for (space in 0...(longest-line.length)+step) {
                 print(" ");
             }
 
             if (arr_to_print[index] != null) {
-                print(arr_to_print[index]);
+                Console.log('<' + ArgumentParser.color2 + '>' + arr_to_print[index] + '</>');
             }
 
             print('\n');

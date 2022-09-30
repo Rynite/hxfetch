@@ -21,10 +21,6 @@ class ArgumentParser {
 		
 		var args = Sys.args();
 		
-		if (args.length == 0) {
-			trace("Not enough arguments!");
-		}
-	
         argHandler.parse(args);
     }
 }

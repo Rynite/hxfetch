@@ -1,11 +1,11 @@
 package;
 
 import ArgumentParser.ArgumentParser;
+import Console;
 
 class Main {
 	static function main() {
-		HxFetch.print_fetch("archlinux");
 		ArgumentParser.register();
-		trace(ArgumentParser.color1);
+		HxFetch.print_fetch("archlinux");
 	}
 }
