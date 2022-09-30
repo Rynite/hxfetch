@@ -42,32 +42,35 @@ class HxFetch {
         var product_version:String = new Process("cat", ["/sys/devices/virtual/dmi/id/product_version "]).stdout.readAll().toString();
         var host:String = product_name + product_version;
 
-        return host;
+        return "host: " + host;
     }
 
     // used for getting uptime
     public static function get_uptime():String {
-        return new Process("uptime").stdout.readAll().toString();
+        var o:String = new Process("uptime").stdout.readAll().toString();
+        var r = ~/(.[0-9]*:[0-9]*:[0-9]*)/;
+        r.match(o);
+        return "uptime: " + r.matched(1);
     }
 
     // get user name
     public static function get_user():String {
-        return new Process("$USER").stdout.readAll().toString();
+        return new Process("$USER").stdout.readAll().toString() + "@" + get_distro();
     }
 
     // kernel version
     public static function get_kernel_version():String {
-        return new Process("uname", ["-r"]).stdout.readAll().toString();
+        return "kernel version: " + new Process("uname", ["-r"]).stdout.readAll().toString();
     }
 
     // get the shell
     public static function get_shell():String {
-        return new Process("$SHELL").stdout.readAll().toString();
+        return "shell " + new Process("$SHELL").stdout.readAll().toString();
     }
 
     // get the terminal emulator
     public static function get_term():String {
-        return new Process("echo", ["$TERM"]).stdout.readAll().toString();
+        return "terminal " + new Process("echo", ["$TERM"]).stdout.readAll().toString();
     }
 
     // get amount of installed pkgs, will filter this to each pkg manager later on
@@ -77,12 +80,16 @@ class HxFetch {
 
     // get RAM
     public static function get_ram():String {
-        return new Process("grep", ["MemTotal", "/proc/meminfo"]).stdout.readAll().toString();
+        var total:Int = Std.parseInt(new Process("grep", ["MemTotal", "/proc/meminfo"]).stdout.readAll().toString());
+        var free:Int = Std.parseInt(new Process("grep", ["MemFree", "/proc/meminfo"]).stdout.readAll().toString());
+
+        return "Memory " + free + " " + "/" + " " + total;
+
     }
 
     // get the dimensions
     public static function get_dimensions():String {
-        return new Process("xdpyinfo", ["|", "awk '/dimensions/{print $2}'"]).stdout.readAll().toString();
+        return "resolution: " + new Process("xdpyinfo", ["|", "awk '/dimensions/{print $2}'"]).stdout.readAll().toString();
     }
 
     public static function get_fetch_details() {
@@ -93,7 +100,7 @@ class HxFetch {
         var kernel:String = get_kernel_version();
         var uptime:String = get_uptime();
         var packages:String = "";
-        var shell:String = get_shell();
+        // var shell:String = get_shell();
         var res:String = get_dimensions();
         var wm:String = "";
         var de:String = "";
@@ -128,6 +135,9 @@ class HxFetch {
             }
         }
         
+        return [
+            distro, host, kernel, uptime, res, te, mem
+        ].map(f -> f.replace('\n',""));
 
     }
 
@@ -159,7 +169,7 @@ class HxFetch {
         }
 
         var index:Int = 0;
-        var arr_to_print:Array<String> = get_main_drive();
+        var arr_to_print:Array<String> = get_fetch_details();
 
         // align them
         for (line in ascii_lines) {
