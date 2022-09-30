@@ -2,6 +2,7 @@ import DFParser.DfParser;
 import sys.io.File;
 import sys.FileSystem;
 import sys.io.Process;
+import Sys.*;
 
 using StringTools;
 
@@ -57,7 +58,7 @@ class HxFetch {
         return Std.parseInt(new Process("grep", ["MemTotal", "/proc/meminfo"]).stdout.readAll().toString());
     }
 
-    public static function get_main_drive():Drive {
+    public static function get_main_drive():Array<String> {
         var r:Array<{Filesystem:String, Size:String, Used:String, Avail:String, UsePct:String, MountedOn:String}> = DfParser.parse(new Process("df").stdout.readAll().toString());
 
         var main_drive:Drive = {
@@ -86,17 +87,54 @@ class HxFetch {
             trace(i.Size);
         }
 
-        return main_drive;
+        return [main_drive.Filesys, main_drive.Avail, main_drive.MountedOn, main_drive.Size, main_drive.UsePct, main_drive.Used];
         
     }
 
-    // print the ascii
-    public static function print_ascii(distro:String) {
+    // get the distro ascii
+    public static function get_ascii(distro:String):String {
+        var ascii_str:String = "";
         for (i in FileSystem.readDirectory("ascii")) {
             if (i == distro + ".txt") {
-                trace(File.getContent('$distro.txt'));
+                ascii_str = File.getContent("ascii/" + distro + ".txt");
             }
         }
+        return ascii_str;
+    }
+
+    public static function print_fetch(distro:String) {
+
+        // some important vars
+        var ascii_lines:Array<String> = File.getContent("ascii/" + distro + ".txt").split("\n");
+        var step:Int= 2;   
+        var longest:Int = 0;
+
+        // Find the longest line
+        for (line in ascii_lines) {
+            if (line.length > longest) {
+                longest = line.length;
+            }
+        }
+
+        var index:Int = 0;
+        var arr_to_print:Array<String> = get_main_drive();
+
+        // align them
+        for (line in ascii_lines) {
+            print(line);
+            for (space in 0...(longest-line.length)+step) {
+                print(" ");
+            }
+
+            if (arr_to_print[index] != null) {
+                print(arr_to_print[index]);
+            }
+
+            print('\n');
+
+            index++;
+        }
+       
     }
 }
 
