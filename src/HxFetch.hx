@@ -89,7 +89,7 @@ class HxFetch {
 
     // get the dimensions
     public static function get_dimensions():String {
-        return "resolution: " + new Process("xdpyinfo", ["|", "awk '/dimensions/{print $2}'"]).stdout.readAll().toString();
+        return "resolution: " + new Process("bash", ["-c", "xdpyinfo | awk '/dimensions/{print $2}'"]).stdout.readAll().toString();
     }
 
     public static function get_fetch_details() {
