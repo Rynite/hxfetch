@@ -1,9 +1,10 @@
-import haxe.display.Display.DisplayModuleTypeParameter;
 import DFParser.DfParser;
 import sys.io.File;
 import sys.FileSystem;
 import sys.io.Process;
-import Sys.*;
+import Sys.print;
+import Console;
+import hxargs.Args;
 
 using StringTools;
 
@@ -11,15 +12,17 @@ using StringTools;
 // This class won't be neofetch dependent, it'll essentially use coreutilss
 class HxFetch {
 
+   
+
     public static var distros:Array<String> = [
         "archlinux",
         "openbsd"
     ];
 
     public static var terms:Array<String> = [
-        "kitty"
+        "kitty",
+        "rxvt"
     ];
-
 
 
     public static var possible_drives:Array<String> = ["/dev/sda1", "/dev/sda2", "/dev/sda3"];
@@ -39,6 +42,9 @@ class HxFetch {
                 f_distro = distro;
             }
         }
+
+
+
         return "os: " + f_distro;
     }
 
@@ -92,15 +98,21 @@ class HxFetch {
     // get the terminal emulator
     public static function get_term():String {
         var te:String = new Process("bash", ["-c", "echo $TERM"]).stdout.readAll().toString();
-        trace(te);
         var terminal:String = "";
 
         for (t in terms) {
             var r:EReg = new EReg('$t', "i");
             if (r.match(te)) {
+                trace("yoo");
                 terminal = t;
             }
         }
+
+        // just some special cases
+        if (terminal == "rxvt") {
+            terminal = "urxvt";
+        }
+        
 
         return "terminal: " + terminal;
     }

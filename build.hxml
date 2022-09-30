@@ -1,4 +1,6 @@
 -cp src
 -D analyzer-optimize
+-lib console.hx
+-lib hxargs
 -main Main
 --interp
