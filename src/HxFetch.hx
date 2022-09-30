@@ -1,3 +1,4 @@
+import haxe.display.Display.DisplayModuleTypeParameter;
 import DFParser.DfParser;
 import sys.io.File;
 import sys.FileSystem;
@@ -6,8 +7,14 @@ import Sys.*;
 
 using StringTools;
 
+
 // This class won't be neofetch dependent, it'll essentially use coreutilss
 class HxFetch {
+
+    public static var distros:Array<String> = [
+        "archlinux",
+        "openbsd"
+    ];
 
     public static var possible_drives:Array<String> = ["/dev/sda1", "/dev/sda2", "/dev/sda3"];
 
@@ -19,8 +26,23 @@ class HxFetch {
     // TODO: extract the distro name through filtering it in a list of distro names produced by
     // uname -a.
     public static function get_distro():String {
-        var result:Process = new Process("uname", ["-a"]);
-        return result.stdout.readAll().toString();
+        var result:String = new Process("uname", ["-n"]).stdout.readAll().toString();
+        var f_distro = "";
+        for(distro in distros) {
+            if (distro == result) {
+                f_distro = distro;
+            }
+        }
+        return f_distro;
+    }
+
+    // get the product details
+    public static function get_host():String {
+        var product_name:String = new Process("cat", ["/sys/devices/virtual/dmi/id/product_name"]).stdout.readAll().toString();
+        var product_version:String = new Process("cat", ["/sys/devices/virtual/dmi/id/product_version "]).stdout.readAll().toString();
+        var host:String = product_name + product_version;
+
+        return host;
     }
 
     // used for getting uptime
@@ -54,12 +76,33 @@ class HxFetch {
     }
 
     // get RAM
-    public static function get_ram():Int {
-        return Std.parseInt(new Process("grep", ["MemTotal", "/proc/meminfo"]).stdout.readAll().toString());
+    public static function get_ram():String {
+        return new Process("grep", ["MemTotal", "/proc/meminfo"]).stdout.readAll().toString();
     }
 
-    public static function get_main_drive():Array<String> {
+    // get the dimensions
+    public static function get_dimensions():String {
+        return new Process("xdpyinfo", ["|", "awk '/dimensions/{print $2}'"]).stdout.readAll().toString();
+    }
+
+    public static function get_fetch_details() {
         var r:Array<{Filesystem:String, Size:String, Used:String, Avail:String, UsePct:String, MountedOn:String}> = DfParser.parse(new Process("df").stdout.readAll().toString());
+
+        var distro:String = get_distro();
+        var host:String = get_host();
+        var kernel:String = get_kernel_version();
+        var uptime:String = get_uptime();
+        var packages:String = "";
+        var shell:String = get_shell();
+        var res:String = get_dimensions();
+        var wm:String = "";
+        var de:String = "";
+        var theme:String = "";
+        var icons:String = "";
+        var te:String = get_term();
+        var cpu:String = "";
+        var gpu:String = "";
+        var mem:String = get_ram();
 
         var main_drive:Drive = {
             Filesys: "",
@@ -83,13 +126,12 @@ class HxFetch {
                 main_drive.UsePct = i.UsePct;
                 main_drive.Used = i.Used;
             }
-
-            trace(i.Size);
         }
-
-        return [main_drive.Filesys, main_drive.Avail, main_drive.MountedOn, main_drive.Size, main_drive.UsePct, main_drive.Used];
         
+
     }
+
+   
 
     // get the distro ascii
     public static function get_ascii(distro:String):String {
