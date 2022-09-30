@@ -16,6 +16,10 @@ class HxFetch {
         "openbsd"
     ];
 
+    public static var terms:Array<String> = [
+        "kitty"
+    ];
+
     public static var possible_drives:Array<String> = ["/dev/sda1", "/dev/sda2", "/dev/sda3"];
 
     public static function hello():Void {
@@ -48,7 +52,7 @@ class HxFetch {
     // used for getting uptime
     public static function get_uptime():String {
         var o:String = new Process("uptime").stdout.readAll().toString();
-        var r = ~/(.[0-9]*:[0-9]*:[0-9]*)/;
+        var r:EReg = ~/(.[0-9]*:[0-9]*:[0-9]*)/;
         r.match(o);
         return "uptime: " + r.matched(1);
     }
@@ -65,12 +69,24 @@ class HxFetch {
 
     // get the shell
     public static function get_shell():String {
-        return "shell " + new Process("$SHELL").stdout.readAll().toString();
+        return "shell " + new Process("bash", ["-c", "echo $SHELL"]).stdout.readAll().toString();
     }
 
     // get the terminal emulator
     public static function get_term():String {
-        return "terminal " + new Process("echo", ["$TERM"]).stdout.readAll().toString();
+        var te:String = new Process("bash", ["-c", "echo $TERM"]).stdout.readAll().toString();
+        trace(te);
+        var r:EReg = new EReg('$te', "i");
+        var terminal:String = "";
+
+        for (t in terms) {
+            var r:EReg = new EReg('$t', "i");
+            if (r.match(te)) {
+                terminal = t;
+            }
+        }
+
+        return "terminal: " + terminal;
     }
 
     // get amount of installed pkgs, will filter this to each pkg manager later on
@@ -92,7 +108,7 @@ class HxFetch {
         return "resolution: " + new Process("bash", ["-c", "xdpyinfo | awk '/dimensions/{print $2}'"]).stdout.readAll().toString();
     }
 
-    public static function get_fetch_details() {
+    public static function get_fetch_details():Array<String> {
         var r:Array<{Filesystem:String, Size:String, Used:String, Avail:String, UsePct:String, MountedOn:String}> = DfParser.parse(new Process("df").stdout.readAll().toString());
 
         var distro:String = get_distro();
@@ -100,7 +116,7 @@ class HxFetch {
         var kernel:String = get_kernel_version();
         var uptime:String = get_uptime();
         var packages:String = "";
-        // var shell:String = get_shell();
+        var shell:String = get_shell();
         var res:String = get_dimensions();
         var wm:String = "";
         var de:String = "";
@@ -136,7 +152,7 @@ class HxFetch {
         }
         
         return [
-            distro, host, kernel, uptime, res, te, mem
+            distro, host, kernel, shell, uptime, res, te, mem
         ].map(f -> f.replace('\n',""));
 
     }
