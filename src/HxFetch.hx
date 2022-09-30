@@ -20,13 +20,7 @@ class HxFetch {
         "kitty"
     ];
 
-    public static var shells:Array<String> = [
-        "fish",
-        "zsh",
-        "bash",
-        "starship",
-        "ksh"
-    ];
+
 
     public static var possible_drives:Array<String> = ["/dev/sda1", "/dev/sda2", "/dev/sda3"];
 
@@ -38,14 +32,14 @@ class HxFetch {
     // TODO: extract the distro name through filtering it in a list of distro names produced by
     // uname -a.
     public static function get_distro():String {
-        var result:String = new Process("uname", ["-n"]).stdout.readAll().toString();
+        var result:String = new Process("uname", ["-n"]).stdout.readAll().toString().replace('\n',"");
         var f_distro = "";
         for(distro in distros) {
             if (distro == result) {
                 f_distro = distro;
             }
         }
-        return f_distro;
+        return "os: " + f_distro;
     }
 
     // get the product details
@@ -67,7 +61,19 @@ class HxFetch {
 
     // get user name
     public static function get_user():String {
-        return new Process("$USER").stdout.readAll().toString() + "@" + get_distro();
+        var ud:String = new Process("bash", ["-c", "echo $USER"]).stdout.readAll().toString() + "@" + get_distro().replace("os: ","") + '\n';
+        return ud;
+    }
+
+    // the dashes thing
+    public static function get_dashes():String {
+        var dashes:String = "";
+
+        for (d in 0...get_user().length) {
+            dashes+="-";
+        }
+
+        return dashes;
     }
 
     // kernel version
@@ -77,14 +83,16 @@ class HxFetch {
 
     // get the shell
     public static function get_shell():String {
-        return "shell " + new Process("bash", ["-c", "echo $SHELL"]).stdout.readAll().toString();
+        var shell:String = new Process("bash", ["-c", "echo $SHELL"]).stdout.readAll().toString();
+
+        return "shell: " + shell.replace("/usr/bin/", "");
+
     }
 
     // get the terminal emulator
     public static function get_term():String {
         var te:String = new Process("bash", ["-c", "echo $TERM"]).stdout.readAll().toString();
         trace(te);
-        var r:EReg = new EReg('$te', "i");
         var terminal:String = "";
 
         for (t in terms) {
@@ -104,10 +112,10 @@ class HxFetch {
 
     // get RAM
     public static function get_ram():String {
-        var total:Int = Std.parseInt(new Process("grep", ["MemTotal", "/proc/meminfo"]).stdout.readAll().toString());
-        var free:Int = Std.parseInt(new Process("grep", ["MemFree", "/proc/meminfo"]).stdout.readAll().toString());
+        var total:Int = Std.int(Std.parseInt(new Process("grep", ["MemTotal", "/proc/meminfo"]).stdout.readAll().toString().replace("kB","").replace("MemTotal: ", "").trim()) / 1000);
+        var free:Int = Std.int(Std.parseInt(new Process("grep", ["MemFree", "/proc/meminfo"]).stdout.readAll().toString().replace("kB","").replace("MemFree: ","").trim()) / 1000);
 
-        return "Memory " + free + " " + "/" + " " + total;
+        return "memory: " + free + " MiB" + " / " + total + " MiB";
 
     }
 
@@ -119,6 +127,7 @@ class HxFetch {
     public static function get_fetch_details():Array<String> {
         var r:Array<{Filesystem:String, Size:String, Used:String, Avail:String, UsePct:String, MountedOn:String}> = DfParser.parse(new Process("df").stdout.readAll().toString());
 
+        var user:String = get_user();
         var distro:String = get_distro();
         var host:String = get_host();
         var kernel:String = get_kernel_version();
@@ -134,6 +143,7 @@ class HxFetch {
         var cpu:String = "";
         var gpu:String = "";
         var mem:String = get_ram();
+        var dashes:String = get_dashes();
 
         var main_drive:Drive = {
             Filesys: "",
@@ -160,7 +170,7 @@ class HxFetch {
         }
         
         return [
-            distro, host, kernel, shell, uptime, res, te, mem
+            user, dashes, distro, host, kernel, shell, uptime, res, te, mem
         ].map(f -> f.replace('\n',""));
 
     }
