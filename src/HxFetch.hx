@@ -58,6 +58,33 @@ class HxFetch {
         return "host: " + host;
     }
 
+    // get the GPU
+    public static function get_gpu():String {
+        var gpu:String = "";
+        var o = new Process("bash", ["-c", "lspci | grep VGA"]).stdout.readAll().toString();
+        var gpu_main:String = "";
+        var model:String = "";
+        
+        // first get the main GPU's name
+        for (g in ["NVIDIA", "AMD"]) {
+            if (o.contains(g)) {
+                gpu_main = g;
+            }
+        }
+
+        // get the model name
+        var r:EReg = ~/.*\[AMD\/ATI]|.*(\[.*])/;
+        r.match(o);
+        if (gpu_main == "NVIDIA") {
+            model = r.matched(1);
+        } else if (gpu_main == "AMD") {
+            model = r.matched(2);
+        }
+
+        return "gpu: " + gpu_main + " " + model.replace("[","").replace("]", "");
+        
+    }
+
     // used for getting uptime
     public static function get_uptime():String {
         var o:String = new Process("uptime").stdout.readAll().toString();
@@ -154,7 +181,7 @@ class HxFetch {
         var icons:String = "";
         var te:String = get_term();
         var cpu:String = "";
-        var gpu:String = "";
+        var gpu:String = get_gpu();
         var mem:String = get_ram();
         var dashes:String = get_dashes();
 
@@ -183,7 +210,7 @@ class HxFetch {
         }
         
         return [
-            user, dashes, distro, host, kernel, shell, uptime, res, te, mem
+            user, dashes, distro, host, kernel, shell, uptime, gpu, res, te, mem
         ].map(f -> f.replace('\n',""));
 
     }
@@ -226,7 +253,7 @@ class HxFetch {
                 ArgumentParser.color2 = "white";
             }
 
-            Console.log('<' + ArgumentParser.color1 + '>' + line + '</>');
+            Console.log('<' + ArgumentParser.color1 + ',b>' + line + '</>');
             
             for (space in 0...(longest-line.length)+step) {
                 Console.log('<white> </white>');
