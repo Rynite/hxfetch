@@ -73,7 +73,7 @@ class HxFetch {
         }
 
         // get the model name
-        var r:EReg = ~/.*\[AMD\/ATI]|.*(\[.*])/;
+        var r:EReg = ~/.*\[AMD\/ATI\]|.*(\[.*\])/;
         r.match(o);
         if (gpu_main == "NVIDIA") {
             model = r.matched(1);
@@ -83,6 +83,30 @@ class HxFetch {
 
         return "gpu: " + gpu_main + " " + model.replace("[","").replace("]", "");
         
+    }
+
+    // get the cpu
+    public static function get_cpu():String {
+        var ghz:String = "";
+        var model:String = "";
+        // first get the number of cores
+        var cores:String = new Process("bash", ["-c", "cat /proc/cpuinfo | grep processor | wc -l"]).stdout.readAll().toString();
+        // now get the processor information
+        var o:String = new Process("bash", ["-c", "cat /proc/cpuinfo | grep 'model name' | uniq"]).stdout.readAll().toString().replace("CPU", "");
+        var proc:String = "";
+        // make sure if its intel (ill fix later for other procs)
+        if (o.contains("Intel")) {
+            proc = "Intel";
+        }
+
+        // find the model name
+        var r:EReg = ~/.*\)(.*)@(.*)/;
+        r.match(o);
+
+        model = r.matched(1);
+        ghz = r.matched(2);
+
+        return "cpu: " + proc + " " + model.replace(" ","").trim() + " @ " + ghz.ltrim();
     }
 
     // used for getting uptime
@@ -180,7 +204,7 @@ class HxFetch {
         var theme:String = "";
         var icons:String = "";
         var te:String = get_term();
-        var cpu:String = "";
+        var cpu:String = get_cpu();
         var gpu:String = get_gpu();
         var mem:String = get_ram();
         var dashes:String = get_dashes();
@@ -210,7 +234,7 @@ class HxFetch {
         }
         
         return [
-            user, dashes, distro, host, kernel, shell, uptime, gpu, res, te, mem
+            user, dashes, distro, host, kernel, shell, uptime, gpu, cpu, res, te, mem
         ].map(f -> f.replace('\n',""));
 
     }
