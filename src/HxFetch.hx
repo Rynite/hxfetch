@@ -20,6 +20,14 @@ class HxFetch {
         "kitty"
     ];
 
+    public static var shells:Array<String> = [
+        "fish",
+        "zsh",
+        "bash",
+        "starship",
+        "ksh"
+    ];
+
     public static var possible_drives:Array<String> = ["/dev/sda1", "/dev/sda2", "/dev/sda3"];
 
     public static function hello():Void {
