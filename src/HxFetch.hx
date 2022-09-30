@@ -229,7 +229,7 @@ class HxFetch {
             Console.log('<' + ArgumentParser.color1 + '>' + line + '</>');
             
             for (space in 0...(longest-line.length)+step) {
-                print(" ");
+                Console.log('<white> </white>');
             }
 
             if (arr_to_print[index] != null) {
@@ -240,6 +240,7 @@ class HxFetch {
 
             index++;
         }
+
        
     }
 }
