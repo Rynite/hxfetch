@@ -115,7 +115,7 @@ class HxFetch {
 
     // get user name
     public static function get_user():Detail {
-        return {title: "", fetch: new Process("bash", ["-c", "echo $USER"]).stdout.readAll().toString() + "@" + get_distro().fetch.replace("os: ","") + '\n'};
+        return {title: "", fetch: '<${ArgumentParser.color1}>${new Process("bash", ["-c", "echo $USER"]).stdout.readAll().toString()}</>@<${ArgumentParser.color1}>${get_distro().fetch.replace("os: ","") + '\n'}</>'};
     }
 
     // the dashes thing
@@ -203,6 +203,8 @@ class HxFetch {
         var mem:Detail = get_ram();
         var dashes:String = get_dashes();
 
+        trace(user);
+
         var main_drive:Drive = {
             Filesys: "",
             Avail: "",
@@ -276,12 +278,12 @@ class HxFetch {
             for (_ in 0...(longest-line.length)+step) {
                 Console.log('<white> </white>');
             }
-
+            
             if (arr_to_print[index] != null) {
                 Console.log('<' + ArgumentParser.color1 + '>' + arr_to_print[index].title + '</>');
                 Console.log('<' + ArgumentParser.color2 + '>' + arr_to_print[index].fetch + '</>');
             }
-
+                
             print('\n');
             
             index++;
