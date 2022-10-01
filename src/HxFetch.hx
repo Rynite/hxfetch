@@ -182,6 +182,22 @@ class HxFetch {
         return {title: "resolution: ", fetch: new Process("bash", ["-c", "xdpyinfo | awk '/dimensions/{print $2}'"]).stdout.readAll().toString()};
     }
 
+    // get wm (currently using wmctrl, but I'll find a way to find the wm without it later :<)
+    public static function get_wm():Detail {
+        return {title: "wm: ", fetch: new Process("bash", ["-c", "wmctrl -m | grep Name | cut -d: -f2"]).stdout.readAll().toString()};
+    }
+
+    // get the currently used DE
+    public static function get_de():Detail {
+        // check if there's even a DE
+        var f:String = new Process("bash", ["-c", "echo $XDG_CURRENT_DESKTOP"]).stdout.readAll().toString();
+        if (f == "") {
+            return {title: "", fetch: ""};
+        }
+
+        return {title: "de: ", fetch: f};
+    }
+
     public static function get_fetch_details():Array<Detail> {
         var r:Array<{Filesystem:String, Size:String, Used:String, Avail:String, UsePct:String, MountedOn:String}> = DfParser.parse(new Process("df").stdout.readAll().toString());
 
@@ -193,8 +209,8 @@ class HxFetch {
         // var packages:Detail = "";
         var shell:Detail = get_shell();
         var res:Detail = get_dimensions();
-        var wm:String = "";
-        var de:String = "";
+        var wm:Detail = get_wm();
+        var de:Detail = get_de();
         var theme:String = "";
         var icons:String = "";
         var te:Detail = get_term();
@@ -203,7 +219,6 @@ class HxFetch {
         var mem:Detail = get_ram();
         var dashes:String = get_dashes();
 
-        trace(user);
 
         var main_drive:Drive = {
             Filesys: "",
@@ -230,7 +245,7 @@ class HxFetch {
         }
         
         return [
-            user, distro, host, kernel, shell, uptime, gpu, cpu, res, te, mem
+            user, distro, host, kernel, wm, de, shell, uptime, gpu, cpu, res, te, mem
         ].map(function f(f):Detail {
             return {title: f.title, fetch: f.fetch.replace('\n',"")};
         });
@@ -272,6 +287,14 @@ class HxFetch {
 
         // align them
         for (line in ascii_lines) {
+            
+            // just in case there is no DE
+            if (arr_to_print[index] != null) {
+                if (arr_to_print[index].title == "de: ") {
+                    index++;
+                    continue;
+                }
+            }
 
             Console.log('<' + ArgumentParser.color1 + ',b>' + line + '</>');
             
@@ -279,6 +302,7 @@ class HxFetch {
                 Console.log('<white> </white>');
             }
             
+
             if (arr_to_print[index] != null) {
                 Console.log('<' + ArgumentParser.color1 + '>' + arr_to_print[index].title + '</>');
                 Console.log('<' + ArgumentParser.color2 + '>' + arr_to_print[index].fetch + '</>');
