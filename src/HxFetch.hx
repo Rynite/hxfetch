@@ -12,8 +12,6 @@ using StringTools;
 // This class won't be neofetch dependent, it'll essentially use coreutilss
 class HxFetch {
 
-   
-
     public static var distros:Array<String> = [
         "archlinux",
         "openbsd"
@@ -35,7 +33,7 @@ class HxFetch {
     // used for getting distro name
     // TODO: extract the distro name through filtering it in a list of distro names produced by
     // uname -a.
-    public static function get_distro():String {
+    public static function get_distro():Detail {
         var result:String = new Process("uname", ["-n"]).stdout.readAll().toString().replace('\n',"");
         var f_distro = "";
         for(distro in distros) {
@@ -43,23 +41,20 @@ class HxFetch {
                 f_distro = distro;
             }
         }
-
-
-
-        return "os: " + f_distro;
+        return {title: "os: ", fetch: f_distro};
     }
 
     // get the product details
-    public static function get_host():String {
+    public static function get_host():Detail {
         var product_name:String = new Process("cat", ["/sys/devices/virtual/dmi/id/product_name"]).stdout.readAll().toString();
         var product_version:String = new Process("cat", ["/sys/devices/virtual/dmi/id/product_version "]).stdout.readAll().toString();
         var host:String = product_name + product_version;
 
-        return "host: " + host;
+        return {title: "host: ", fetch: host};
     }
 
     // get the GPU
-    public static function get_gpu():String {
+    public static function get_gpu():Detail {
         var gpu:String = "";
         var o = new Process("bash", ["-c", "lspci | grep VGA"]).stdout.readAll().toString();
         var gpu_main:String = "";
@@ -81,12 +76,12 @@ class HxFetch {
             model = r.matched(2);
         }
 
-        return "gpu: " + gpu_main + " " + model.replace("[","").replace("]", "");
+        return {title: "gpu: ", fetch: gpu_main + " " + model.replace("[","").replace("]", "")};
         
     }
 
     // get the cpu
-    public static function get_cpu():String {
+    public static function get_cpu():Detail {
         var ghz:String = "";
         var model:String = "";
         // first get the number of cores
@@ -106,28 +101,28 @@ class HxFetch {
         model = r.matched(1);
         ghz = r.matched(2);
 
-        return "cpu: " + proc + " " + model.replace(" ","").trim() + " @ " + ghz.ltrim();
+        return {title: "cpu: ", fetch: proc + " " + model.replace(" ","").trim() + " @ " + ghz.ltrim()}
     }
 
     // used for getting uptime
-    public static function get_uptime():String {
+    public static function get_uptime():Detail {
         var o:String = new Process("uptime").stdout.readAll().toString();
         var r:EReg = ~/(.[0-9]*:[0-9]*:[0-9]*)/;
         r.match(o);
-        return "uptime: " + r.matched(1);
+
+        return {title: "uptime: ", fetch: r.matched(1)};
     }
 
     // get user name
-    public static function get_user():String {
-        var ud:String = new Process("bash", ["-c", "echo $USER"]).stdout.readAll().toString() + "@" + get_distro().replace("os: ","") + '\n';
-        return ud;
+    public static function get_user():Detail {
+        return {title: "", fetch: new Process("bash", ["-c", "echo $USER"]).stdout.readAll().toString() + "@" + get_distro().fetch.replace("os: ","") + '\n'};
     }
 
     // the dashes thing
     public static function get_dashes():String {
         var dashes:String = "";
 
-        for (d in 0...get_user().length) {
+        for (d in 0...get_user().fetch.length) {
             dashes+="-";
         }
 
@@ -135,20 +130,19 @@ class HxFetch {
     }
 
     // kernel version
-    public static function get_kernel_version():String {
-        return "kernel version: " + new Process("uname", ["-r"]).stdout.readAll().toString();
+    public static function get_kernel_version():Detail {
+        return {title: "kernel version: ", fetch: new Process("uname", ["-r"]).stdout.readAll().toString()}
     }
 
     // get the shell
-    public static function get_shell():String {
+    public static function get_shell():Detail {
         var shell:String = new Process("bash", ["-c", "echo $SHELL"]).stdout.readAll().toString();
 
-        return "shell: " + shell.replace("/usr/bin/", "");
-
+        return {title: "shell: ", fetch: shell.replace("/usr/bin/", "")};
     }
 
     // get the terminal emulator
-    public static function get_term():String {
+    public static function get_term():Detail {
         var te:String = new Process("bash", ["-c", "echo $TERM"]).stdout.readAll().toString();
         var terminal:String = "";
 
@@ -166,7 +160,7 @@ class HxFetch {
             terminal = "vscode";
         }
 
-        return "terminal: " + terminal;
+        return {title: "terminal: ", fetch: terminal};
     }
 
     // get amount of installed pkgs, will filter this to each pkg manager later on
@@ -175,38 +169,38 @@ class HxFetch {
     }
 
     // get RAM
-    public static function get_ram():String {
+    public static function get_ram():Detail {
         var total:Int = Std.int(Std.parseInt(new Process("grep", ["MemTotal", "/proc/meminfo"]).stdout.readAll().toString().replace("kB","").replace("MemTotal: ", "").trim()) / 1000);
         var free:Int = Std.int(Std.parseInt(new Process("grep", ["MemFree", "/proc/meminfo"]).stdout.readAll().toString().replace("kB","").replace("MemFree: ","").trim()) / 1000);
 
-        return "memory: " + free + " MiB" + " / " + total + " MiB";
+        return {title: "memory: ", fetch: free + " MiB" + " / " + total + " MiB"};
 
     }
 
     // get the dimensions
-    public static function get_dimensions():String {
-        return "resolution: " + new Process("bash", ["-c", "xdpyinfo | awk '/dimensions/{print $2}'"]).stdout.readAll().toString();
+    public static function get_dimensions():Detail {
+        return {title: "resolution: ", fetch: new Process("bash", ["-c", "xdpyinfo | awk '/dimensions/{print $2}'"]).stdout.readAll().toString()};
     }
 
-    public static function get_fetch_details():Array<String> {
+    public static function get_fetch_details():Array<Detail> {
         var r:Array<{Filesystem:String, Size:String, Used:String, Avail:String, UsePct:String, MountedOn:String}> = DfParser.parse(new Process("df").stdout.readAll().toString());
 
-        var user:String = get_user();
-        var distro:String = get_distro();
-        var host:String = get_host();
-        var kernel:String = get_kernel_version();
-        var uptime:String = get_uptime();
-        var packages:String = "";
-        var shell:String = get_shell();
-        var res:String = get_dimensions();
+        var user:Detail = get_user();
+        var distro:Detail = get_distro();
+        var host:Detail = get_host();
+        var kernel:Detail = get_kernel_version();
+        var uptime:Detail = get_uptime();
+        // var packages:Detail = "";
+        var shell:Detail = get_shell();
+        var res:Detail = get_dimensions();
         var wm:String = "";
         var de:String = "";
         var theme:String = "";
         var icons:String = "";
-        var te:String = get_term();
-        var cpu:String = get_cpu();
-        var gpu:String = get_gpu();
-        var mem:String = get_ram();
+        var te:Detail = get_term();
+        var cpu:Detail = get_cpu();
+        var gpu:Detail= get_gpu();
+        var mem:Detail = get_ram();
         var dashes:String = get_dashes();
 
         var main_drive:Drive = {
@@ -234,8 +228,10 @@ class HxFetch {
         }
         
         return [
-            user, dashes, distro, host, kernel, shell, uptime, gpu, cpu, res, te, mem
-        ].map(f -> f.replace('\n',""));
+            user, distro, host, kernel, shell, uptime, gpu, cpu, res, te, mem
+        ].map(function f(f):Detail {
+            return {title: f.title, fetch: f.fetch.replace('\n',"")};
+        });
 
     }
 
@@ -259,6 +255,7 @@ class HxFetch {
         var step:Int= 2;   
         var longest:Int = 0;
 
+
         // Find the longest line
         for (line in ascii_lines) {
             if (line.length > longest) {
@@ -267,29 +264,28 @@ class HxFetch {
         }
 
         var index:Int = 0;
-        var arr_to_print:Array<String> = get_fetch_details();
+        var arr_to_print:Array<Detail> = get_fetch_details();
+
+      
 
         // align them
         for (line in ascii_lines) {
-            if (ArgumentParser.color1 == "") {
-                ArgumentParser.color1 = "white";
-            } else if (ArgumentParser.color2 == "") {
-                ArgumentParser.color2 = "white";
-            }
 
             Console.log('<' + ArgumentParser.color1 + ',b>' + line + '</>');
             
-            for (space in 0...(longest-line.length)+step) {
+            for (_ in 0...(longest-line.length)+step) {
                 Console.log('<white> </white>');
             }
 
             if (arr_to_print[index] != null) {
-                Console.log('<' + ArgumentParser.color2 + '>' + arr_to_print[index] + '</>');
+                Console.log('<' + ArgumentParser.color1 + '>' + arr_to_print[index].title + '</>');
+                Console.log('<' + ArgumentParser.color2 + '>' + arr_to_print[index].fetch + '</>');
             }
 
             print('\n');
-
+            
             index++;
+            
         }
 
        
@@ -304,4 +300,9 @@ typedef Drive =  {
     var Avail: String;
     var UsePct: String;
     var MountedOn:String;
+}
+
+typedef Detail = {
+    var title:String;
+    var fetch:String;
 }

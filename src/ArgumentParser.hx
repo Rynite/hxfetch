@@ -22,5 +22,11 @@ class ArgumentParser {
 		var args = Sys.args();
 		
         argHandler.parse(args);
+
+        if (color1 == "") {
+            color1 = "white";
+        } else if (color2 == "") {
+            color2 = "white";
+        }
     }
 }
