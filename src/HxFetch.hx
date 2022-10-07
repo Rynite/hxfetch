@@ -9,7 +9,7 @@ import Console;
 using StringTools;
 
 
-// This class won't be neofetch dependent, it'll essentially use coreutilss
+// This class won't be neofetch dependent, it'll essentially use coreutils
 class HxFetch {
 
     public static var distros:Array<String> = [
@@ -115,7 +115,10 @@ class HxFetch {
 
     // get user name
     public static function get_user():Detail {
-        return {title: "", fetch: '<${ArgumentParser.color1}>${new Process("bash", ["-c", "echo $USER"]).stdout.readAll().toString()}</>@<${ArgumentParser.color1}>${get_distro().fetch.replace("os: ","") + '\n'}</>'};
+        var user:String = new Process("bash", ["-c", "echo $USER"]).stdout.readAll().toString().trim();
+        var distro:String = get_distro().fetch.replace("os", "");
+        
+        return {title: "", fetch: user + "@" + distro}; // <white/> hello </>
     }
 
     // the dashes thing
@@ -170,8 +173,8 @@ class HxFetch {
 
     // get RAM
     public static function get_ram():Detail {
-        var total:Int = Std.int(Std.parseInt(new Process("grep", ["MemTotal", "/proc/meminfo"]).stdout.readAll().toString().replace("kB","").replace("MemTotal: ", "").trim()) / 1000);
-        var free:Int = Std.int(Std.parseInt(new Process("grep", ["MemFree", "/proc/meminfo"]).stdout.readAll().toString().replace("kB","").replace("MemFree: ","").trim()) / 1000);
+        var total:Int = Std.int(Std.parseInt(new Process("grep", ["MemTotal", "/proc/meminfo"]).stdout.readAll().toString().replace("kB","").replace("MemTotal: ", "").trim()) / 1024);
+        var free:Int = Std.int(Std.parseInt(new Process("grep", ["MemFree", "/proc/meminfo"]).stdout.readAll().toString().replace("kB","").replace("MemFree: ","").trim()) / 1024);
 
         return {title: "memory: ", fetch: free + " MiB" + " / " + total + " MiB"};
 
@@ -271,51 +274,103 @@ class HxFetch {
         var ascii_lines:Array<String> = File.getContent("ascii/" + distro + ".txt").split("\n");
         var step:Int= 2;   
         var longest:Int = 0;
-
-
-        // Find the longest line
-        for (line in ascii_lines) {
-            if (line.length > longest) {
-                longest = line.length;
-            }
-        }
-
         var index:Int = 0;
         var arr_to_print:Array<Detail> = get_fetch_details();
 
-      
-
-        // align them
-        for (line in ascii_lines) {
-            
-            // just in case there is no DE
-            if (arr_to_print[index] != null) {
-                if (arr_to_print[index].title == "de: ") {
-                    index++;
-                    continue;
-                }
-            }
-
-            Console.log('<' + ArgumentParser.color1 + ',b>' + line + '</>');
-            
-            for (_ in 0...(longest-line.length)+step) {
-                Console.log('<white> </white>');
-            }
-            
-
-            if (arr_to_print[index] != null) {
-                Console.log('<' + ArgumentParser.color1 + '>' + arr_to_print[index].title + '</>');
-                Console.log('<' + ArgumentParser.color2 + '>' + arr_to_print[index].fetch + '</>');
-            }
+        switch (ArgumentParser.layout) {
+            case ("right"):
                 
-            print('\n');
-            
-            index++;
-            
+                // Find the longest line
+                for (line in ascii_lines) {
+                    if (line.length > longest) {
+                        longest = line.length;
+                    }
+                }
+                // align them
+                for (line in ascii_lines) {
+                    
+                    // just in case there is no DE
+                    if (arr_to_print[index] != null) {
+                        if (arr_to_print[index].title == "de: ") {
+                            index++;
+                            continue;
+                        }
+                    }
+        
+                    // print one line of the ascii
+                    Console.log('<' + ArgumentParser.color1 + ',b>' + line + '</>');
+                    
+                    // print spaces to push them nicely
+                    for (_ in 0...(longest-line.length)+step) {
+                        Console.log('<white> </white>');
+                    }
+                    
+                    // print the fetch details
+                    if (arr_to_print[index] != null) {
+                        Console.log('<' + ArgumentParser.color1 + '>' + arr_to_print[index].title + '</>');
+                        Console.log('<' + ArgumentParser.color2 + '>' + arr_to_print[index].fetch + '</>');
+                    }
+                        
+                    // finally print a new line so it doesn't look like a terrible mess :)
+                    print('\n');
+                    
+                    index++;
+                
+
+        }
+            case ("left"):
+                longest = 0;
+                index = 0;
+
+                // Find the longest line in the fetch details
+                for (line in arr_to_print) {
+                    if (line.title.length + line.fetch.length > longest) {
+                        longest = line.title.length + line.fetch.length;
+                    }
+                }
+                // align them
+                for (line in ascii_lines) {
+                    
+                    // just in case there is no DE
+                    if (arr_to_print[index] != null) {
+                        if (arr_to_print[index].title == "de: ") {
+                            index++;
+                            continue;
+                        }
+                    }
+                    
+                    // print the fetch details
+                    if (arr_to_print[index] != null) {
+                        Console.log('<' + ArgumentParser.color1 + '>' + arr_to_print[index].title + '</>');
+                        Console.log('<' + ArgumentParser.color2 + '>' + arr_to_print[index].fetch + '</>');
+                    }
+
+                    if (arr_to_print[index] != null) {
+                        // print spaces to push them nicely
+                        for (_ in 0...(longest-(arr_to_print[index].title.length + arr_to_print[index].fetch.length))+step) {
+                            Console.log('<white> </white>');
+                        }
+                    } else {
+                        for (_ in 0...longest-step+4) {
+                            Console.log('<white> </white>');
+                        }
+                    }
+
+                    // print one line of the ascii
+                    Console.log('<' + ArgumentParser.color1 + ',b>' + line + '</>');
+                    
+                        
+                    // finally print a new line so it doesn't look like a terrible mess :)
+                    print('\n');
+                    
+                    index++;
+                }
+                
         }
 
-       
     }
+
+
 }
 
 

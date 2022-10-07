@@ -4,8 +4,10 @@ import hxargs.Args;
 
 class ArgumentParser {
 
-    public static var color1 = "";
-    public static var color2 = "";
+    public static var color1:String = "";
+    public static var color2:String = "";
+    public static var layout:String = "";
+    public static var border:String = "";
 
     public static function register() {
         var argHandler = hxargs.Args.generate([
@@ -14,6 +16,12 @@ class ArgumentParser {
 
             @doc("Set color2")
             ["-c2", "--color2"] => function(c:String) color2 = c,
+            
+            @doc("Set the layout of the fetch details")
+            ["-l", "--layout"] => function (l:String) layout = l,
+
+            @doc("If you want a border or not around your fetch details")
+            ["-b", "--border"] => function (b:String) border = b,
 
             _ => function(arg:String) trace ("Unknown command: " +arg)
 		
@@ -25,8 +33,15 @@ class ArgumentParser {
 
         if (color1 == "") {
             color1 = "white";
-        } else if (color2 == "") {
+        }
+        if (color2 == "") {
             color2 = "white";
+        }
+        if (layout == "") {
+            layout = "right";
+        }
+        if (border == "") {
+            border = "white";
         }
     }
 }

@@ -1,7 +1,7 @@
 package;
 
 import ArgumentParser.ArgumentParser;
-import Console;
+import HxFetch;
 
 class Main {
 	static function main() {
