@@ -1,3 +1,4 @@
+import haxe.Json;
 import DFParser.DfParser;
 import sys.io.File;
 import sys.FileSystem;
@@ -10,6 +11,9 @@ using StringTools;
 
 
 // This class won't be neofetch dependent, it'll essentially use coreutils
+
+// IMPORTANT, IF CONFIG.json IS PROVIDED, CMD LINE ARGS WILL BE INGORED
+
 class HxFetch {
 
     public static var distros:Array<String> = [
@@ -22,6 +26,8 @@ class HxFetch {
         "rxvt",
         "xterm-256color"
     ];
+
+    public static var config = Json.parse(File.getContent("config.json"));
 
 
     public static var possible_drives:Array<String> = ["/dev/sda1", "/dev/sda2", "/dev/sda3"];
@@ -280,6 +286,7 @@ class HxFetch {
         var arr_to_print:Array<Detail> = get_fetch_details();
         
         switch (ArgumentParser.layout) {
+            
             case ("right"):
                 
                 // Find the longest line

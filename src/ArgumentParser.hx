@@ -31,16 +31,16 @@ class ArgumentParser {
 		
         argHandler.parse(args);
 
-        if (color1 == "") {
+        if (color1 == "" && HxFetch.config.color1 == "") {
             color1 = "white";
         }
-        if (color2 == "") {
+        if (color2 == "" && HxFetch.config.color2 == "") {
             color2 = "white";
         }
-        if (layout == "") {
+        if (layout == "" && HxFetch.config.layout == "") {
             layout = "right";
         }
-        if (border == "") {
+        if (border == "" && HxFetch.config.border == "") {
             border = "white";
         }
     }
