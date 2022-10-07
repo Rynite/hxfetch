@@ -250,7 +250,7 @@ class HxFetch {
         return [
             user, distro, host, kernel, wm, de, shell, uptime, gpu, cpu, res, te, mem
         ].map(function f(f):Detail {
-            return {title: f.title, fetch: f.fetch.replace('\n',"")};
+            return {title: f.title, fetch: f.fetch.replace('\n',""), title_color: ArgumentParser.color1, fetch_color: ArgumentParser.color2};
         });
 
     }
@@ -270,13 +270,15 @@ class HxFetch {
 
     public static function print_fetch(distro:String) {
 
+        
+        
         // some important vars
         var ascii_lines:Array<String> = File.getContent("ascii/" + distro + ".txt").split("\n");
         var step:Int= 2;   
         var longest:Int = 0;
         var index:Int = 0;
         var arr_to_print:Array<Detail> = get_fetch_details();
-
+        
         switch (ArgumentParser.layout) {
             case ("right"):
                 
@@ -307,8 +309,8 @@ class HxFetch {
                     
                     // print the fetch details
                     if (arr_to_print[index] != null) {
-                        Console.log('<' + ArgumentParser.color1 + '>' + arr_to_print[index].title + '</>');
-                        Console.log('<' + ArgumentParser.color2 + '>' + arr_to_print[index].fetch + '</>');
+                        Console.log('<' + arr_to_print[index].title_color + '>' + arr_to_print[index].title + '</>');
+                        Console.log('<' + arr_to_print[index].fetch_color + '>' + arr_to_print[index].fetch + '</>');
                     }
                         
                     // finally print a new line so it doesn't look like a terrible mess :)
@@ -319,8 +321,12 @@ class HxFetch {
 
         }
             case ("left"):
+                ascii_lines = File.getContent("ascii/" + distro + ".txt").split("\n");
+                step = 2;   
                 longest = 0;
                 index = 0;
+                arr_to_print = get_fetch_details();
+
 
                 // Find the longest line in the fetch details
                 for (line in arr_to_print) {
@@ -341,8 +347,8 @@ class HxFetch {
                     
                     // print the fetch details
                     if (arr_to_print[index] != null) {
-                        Console.log('<' + ArgumentParser.color1 + '>' + arr_to_print[index].title + '</>');
-                        Console.log('<' + ArgumentParser.color2 + '>' + arr_to_print[index].fetch + '</>');
+                        Console.log('<' + arr_to_print[index].title_color + '>' + arr_to_print[index].title + '</>');
+                        Console.log('<' + arr_to_print[index].fetch_color + '>' + arr_to_print[index].fetch + '</>');
                     }
 
                     if (arr_to_print[index] != null) {
@@ -365,13 +371,96 @@ class HxFetch {
                     
                     index++;
                 }
+
+            case ("up"):
+
+                ascii_lines = File.getContent("ascii/" + distro + ".txt").split("\n");
+                step = 2;   
+                longest = 0;
+                index = 0;
+                arr_to_print = get_fetch_details();
+
+
+                // print the ascii
+                for (line in ascii_lines) {
+                    Console.log('<' + ArgumentParser.color1 + ',b>' + line + '</>');
+                    print('\n');
+                }
+
+                print('\n');
+
+               // print details
+               for (i in arr_to_print) {
+                    // just in case there is no DE
+                    if (i != null) {
+                        if (i.title == "de: ") {
+                            continue;
+                        }
+                    }
+                    // print white space
+                    Console.log("<white>" + " " + "</>");
+                    // print a detail
+                    Console.log('<' + i.title_color + '>' + i.title + '</>');
+                    Console.log("<" + i.fetch_color + ">" + i.fetch + "</>");
+                    print('\n');
+               }
+
+               
+                    
+                        
+                // finally print a new line so it doesn't look like a terrible mess :)
+                print('\n');
+                
+                index++;
+            
+            case ("down"):
+                ascii_lines = File.getContent("ascii/" + distro + ".txt").split("\n");
+                step = 2;   
+                longest = 0;
+                index = 0;
+                arr_to_print = get_fetch_details();
+
+                // print details
+                for (i in arr_to_print) {
+                     // just in case there is no DE
+                     if (i != null) {
+                         if (i.title == "de: ") {
+                            continue;
+                         }
+                     }
+                     // print white space
+                     Console.log("<white>" + " " + "</>");
+                     // print a detail
+                     Console.log('<' + i.title_color + '>' + i.title + '</>');
+                     Console.log("<" + i.fetch_color + ">" + i.fetch + "</>");
+                     print('\n');
+                }
+
+                // print the ascii
+                for (line in ascii_lines) {
+                    Console.log('<' + ArgumentParser.color1 + ',b>' + line + '</>');
+                    print('\n');
+                }
+
+                print('\n');
+
+
+               
+                    
+                        
+                // finally print a new line so it doesn't look like a terrible mess :)
+                print('\n');
+                
+                index++;
+            }
+
+
                 
         }
 
     }
 
 
-}
 
 
 typedef Drive =  {
@@ -386,4 +475,6 @@ typedef Drive =  {
 typedef Detail = {
     var title:String;
     var fetch:String;
+    @:optional var title_color:String;
+    @:optional var fetch_color:String;
 }
